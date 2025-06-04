@@ -1,0 +1,231 @@
+# Game-specific navigation flows for automated benchmarking
+# Each game defines its unique path from main menu to benchmark completion
+
+games:
+  far_cry_5:
+    name: "Far Cry 5"
+    flow:
+      - step: 1
+        screen_context: "main_menu"
+        description: "Main menu with game options"
+        expected_buttons: ["CONTINUE", "NEW GAME", "OPTIONS", "QUIT TO DESKTOP"]
+        target_button: "OPTIONS"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["GRAPHICS", "AUDIO", "CONTROLS", "GAMEPLAY"]
+        
+      - step: 2
+        screen_context: "options_menu"
+        description: "Options menu with different settings categories"
+        expected_buttons: ["GRAPHICS", "AUDIO", "CONTROLS", "GAMEPLAY"]
+        target_button: "GRAPHICS"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["BENCHMARK", "DISPLAY MODE", "RESOLUTION"]
+        
+      - step: 3
+        screen_context: "graphics_settings"
+        description: "Graphics settings with benchmark option"
+        expected_buttons: ["BENCHMARK", "DISPLAY MODE", "RESOLUTION", "QUALITY"]
+        target_button: "BENCHMARK"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["START", "RUN", "BEGIN"]
+        
+      - step: 4
+        screen_context: "benchmark_start"
+        description: "Benchmark initiation screen"
+        expected_buttons: ["START", "RUN", "BEGIN", "CANCEL"]
+        target_button: "START"
+        action: "click"
+        max_retries: 2
+        success_indicators: ["BENCHMARK RUNNING", "TESTING"]
+
+  far_cry_6:
+    name: "Far Cry 6"
+    flow:
+      - step: 1
+        screen_context: "main_menu"
+        description: "Main menu screen"
+        expected_buttons: ["CONTINUE", "NEW GAME", "OPTIONS", "EXIT"]
+        target_button: "OPTIONS"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["GRAPHICS", "AUDIO", "CONTROLS"]
+        
+      - step: 2
+        screen_context: "options_menu"
+        description: "Options menu"
+        expected_buttons: ["GRAPHICS", "AUDIO", "CONTROLS", "GAMEPLAY"]
+        target_button: "GRAPHICS"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["BENCHMARK", "RESOLUTION", "QUALITY"]
+        
+      - step: 3
+        screen_context: "graphics_settings"
+        description: "Graphics settings menu"
+        expected_buttons: ["BENCHMARK", "RESOLUTION", "QUALITY", "EFFECTS"]
+        target_button: "BENCHMARK"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["START", "RUN"]
+
+  counter_strike_2:
+    name: "Counter-Strike 2"
+    flow:
+      - step: 1
+        screen_context: "main_menu"
+        description: "CS2 main menu"
+        expected_buttons: ["PLAY", "INVENTORY", "WATCH", "SETTINGS"]
+        target_button: "PLAY"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["WORKSHOP MAPS", "MATCHMAKING", "PRACTICE"]
+        
+      - step: 2
+        screen_context: "play_menu"
+        description: "Play menu with different game modes"
+        expected_buttons: ["WORKSHOP MAPS", "MATCHMAKING", "PRACTICE", "COMMUNITY"]
+        target_button: "WORKSHOP MAPS"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["CS2 FPS BENCHMARK", "SEARCH"]
+        
+      - step: 3
+        screen_context: "workshop_maps"
+        description: "Workshop maps browser"
+        expected_buttons: ["CS2 FPS BENCHMARK", "SEARCH", "SUBSCRIBED"]
+        target_button: "CS2 FPS BENCHMARK"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["GO", "PLAY", "START"]
+        
+      - step: 4
+        screen_context: "benchmark_map"
+        description: "Benchmark map details"
+        expected_buttons: ["GO", "PLAY", "START", "BACK"]
+        target_button: "GO"
+        action: "click"
+        max_retries: 2
+        success_indicators: ["LOADING", "CONNECTING"]
+
+  black_myth_wukong:
+    name: "Black Myth: Wukong Benchmark"
+    flow:
+      - step: 1
+        screen_context: "splash_screen"
+        description: "Initial splash screen - click anywhere to continue"
+        expected_buttons: ["CLICK ANYWHERE", "PRESS ANY KEY"]
+        target_button: "ANY"
+        action: "click_anywhere"
+        max_retries: 2
+        success_indicators: ["BENCHMARK", "SETTINGS", "EXIT"]
+        
+      - step: 2
+        screen_context: "main_menu"
+        description: "Benchmark tool main menu"
+        expected_buttons: ["BENCHMARK", "SETTINGS", "EXIT"]
+        target_button: "BENCHMARK"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["Are you sure you want to run benchmark", "Confirm"]
+        
+      - step: 3
+        screen_context: "benchmark_confirm"
+        description: "Benchmark confirmation dialog"
+        expected_buttons: ["CONFIRM", "CANCEL"]
+        target_button: "CONFIRM"
+        action: "click"
+        max_retries: 2
+        success_indicators: ["BENCHMARK STARTING", "LOADING", "Black Screen"]
+
+  cyberpunk_2077:
+    name: "Cyberpunk 2077"
+    flow:
+      - step: 1
+        screen_context: "main_menu"
+        description: "Main menu screen"
+        expected_buttons: ["CONTINUE", "NEW GAME", "SETTINGS", "EXIT"]
+        target_button: "SETTINGS"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["GRAPHICS", "AUDIO", "CONTROLS"]
+        
+      - step: 2
+        screen_context: "settings_menu"
+        description: "Settings menu"
+        expected_buttons: ["GRAPHICS", "AUDIO", "CONTROLS", "GAMEPLAY"]
+        target_button: "GRAPHICS"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["BENCHMARK", "RAY TRACING", "QUALITY"]
+        
+      - step: 3
+        screen_context: "graphics_settings"
+        description: "Graphics settings"
+        expected_buttons: ["BENCHMARK", "RAY TRACING", "QUALITY", "DLSS"]
+        target_button: "BENCHMARK"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["START", "RUN BENCHMARK"]
+
+# Exit flow (common for most games)
+exit_flow:
+  common:
+    flow:
+      - step: 1
+        screen_context: "any_menu"
+        description: "Press escape to return to main menu"
+        action: "press_escape"
+        max_retries: 5
+        success_indicators: ["MAIN MENU", "EXIT", "QUIT"]
+        
+      - step: 2
+        screen_context: "main_menu"
+        description: "Click exit/quit button"
+        expected_buttons: ["EXIT", "QUIT", "QUIT TO DESKTOP", "EXIT GAME"]
+        target_button: "EXIT"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["YES", "CONFIRM", "OK"]
+        
+      - step: 3
+        screen_context: "exit_confirmation"
+        description: "Confirm exit"
+        expected_buttons: ["YES", "CONFIRM", "OK", "EXIT"]
+        target_button: "YES"
+        action: "click"
+        max_retries: 2
+        success_indicators: ["CLOSING", "SHUTDOWN"]
+
+# Result detection patterns
+result_detection:
+  fps_indicators:
+    - "FPS"
+    - "FRAMES PER SECOND"
+    - "AVERAGE"
+    - "MIN"
+    - "MAX"
+    - "1% LOW"
+    - "0.1% LOW"
+    - "FRAMETIME"
+    
+  completion_indicators:
+    - "BENCHMARK COMPLETE"
+    - "TEST FINISHED"
+    - "RESULTS"
+    - "SUMMARY"
+    - "SCORE"
+    - "PERFORMANCE"
+    - "FINISHED"
+    
+  result_screen_context: "benchmark_results"
+
+# Global settings
+settings:
+  screenshot_interval: 2.0
+  max_step_timeout: 30
+  benchmark_duration: 70
+  result_detection_attempts: 5
+  navigation_cooldown: 1.5

@@ -1,336 +1,305 @@
-# Automated Game Benchmarker
+# Automated Game Benchmarking System
 
-A modular computer vision-based system for automatically running in-game benchmarks. The system uses OmniParserV2 to detect and interact with game UI elements, enabling fully automated benchmark execution.
+An intelligent automated system for running game benchmarks using **OmniParser V2** for UI element detection and **Qwen 2.5 7B Instruct** for decision-making. This system automatically navigates through game menus, runs built-in benchmarks, captures results, and gracefully exits games.
+
+## 🌟 Features
+
+- **Fully Automated**: Complete end-to-end benchmarking without human intervention
+- **AI-Powered Navigation**: Uses OmniParser V2 + Qwen 2.5 for intelligent UI understanding
+- **Modular Architecture**: Clean, maintainable codebase with separate components
+- **Win32API Integration**: Precise mouse and keyboard control using Windows APIs
+- **Comprehensive Logging**: Detailed logging and debug information for troubleshooting
+- **Result Capture**: Automatic detection and saving of benchmark results
+- **Graceful Game Handling**: Proper game launching and exit procedures
 
 ## 🏗️ Architecture
 
-The system is organized into modular components for maintainability and flexibility:
-
 ```
-├── config.py              # Configuration and settings
-├── detector.py             # Computer vision and image detection
-├── input_controller.py     # Mouse and keyboard input handling
-├── analyzer.py             # UI element analysis and detection logic
-├── debug_annotator.py      # Debug visualization and annotation system
-├── game_controller.py      # Game-specific operations and navigation
-├── benchmark_manager.py    # Main orchestration and benchmark execution
-├── main.py                # Entry point and CLI interface
-└── util/
-    └── utils.py           # OmniParser utility functions (existing)
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Screenshot    │───▶│   OmniParser V2  │───▶│  UI Elements    │
+│   Manager       │    │                  │    │                 │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                                                         │
+┌─────────────────┐    ┌──────────────────┐             ▼
+│ Input Controller│◄───│  UI Analyzer     │◄────┌─────────────────┐
+│   (Win32API)    │    │                  │     │ Qwen 2.5 7B     │
+└─────────────────┘    └──────────────────┘     │ Instruct        │
+         │                       ▲              └─────────────────┘
+         ▼                       │
+┌─────────────────┐              │
+│ Game Interface  │──────────────┘
+│                 │
+└─────────────────┘
 ```
 
-## 🚀 Features
+## 📦 Installation
 
-- **Automated Game Launch**: Starts games and waits for main menu detection
-- **Intelligent UI Navigation**: Uses computer vision to navigate through game menus
-- **Benchmark Execution**: Automatically runs in-game benchmarks and captures results
-- **Result Collection**: Takes screenshots of benchmark results for analysis
-- **Debug Annotations**: Comprehensive visual debugging with labeled bounding boxes
-- **Element Analysis**: Detailed text reports of detected UI elements
-- **Graceful Exit**: Properly exits games through UI or force-close as fallback
-- **Comprehensive Logging**: Detailed logs of all operations and detections
-- **Modular Design**: Easy to extend for different games and use cases
+### Prerequisites
 
-## 📋 Requirements
-
+- Windows 10/11 (required for win32api)
 - Python 3.8+
-- PyTorch (for OmniParser)
-- PIL (Pillow)
-- win32api/win32con (Windows only)
-- ultralytics (YOLO)
-- OmniParserV2 dependencies
+- NVIDIA GPU with CUDA support (recommended)
+- 16GB+ RAM (for running AI models)
 
-## ⚙️ Configuration
+### Dependencies
 
-All settings are centralized in `config.py`. Key configuration options:
-
-### Game Settings
-```python
-# Path to your game executable
-DEFAULT_GAME_PATH = r"C:\Path\To\Your\Game.exe"
-
-# Timing settings
-BENCHMARK_DURATION = 70  # seconds
-MAIN_MENU_WAIT_TIME = 300  # seconds
-SNAPSHOT_INTERVAL = 25  # seconds
-```
-
-### Model Settings
-```python
-# OmniParser model configuration
-MODEL_PATH = "weights/icon_detect/model.pt"
-CAPTION_MODEL_PATH = "weights/icon_caption_florence"
-BOX_THRESHOLD = 0.05  # Detection sensitivity
-DEVICE = "cuda"  # or "cpu"
-```
-
-### UI Element Detection
-```python
-# Customize UI element detection prompts
-MAIN_MENU_INDICATORS = [
-    ["start new game", "new game", "play", "campaign"],
-    ["options", "settings", "configuration"],
-    ["exit", "quit", "exit game"]
-]
-
-BENCHMARK_TARGETS = ["benchmark", "benchmarks", "performance test"]
-```
-
-### Debug Annotation Settings
-```python
-# Enable/disable debug features
-ENABLE_DEBUG_ANNOTATIONS = True
-SAVE_ELEMENTS_LIST = True
-CREATE_COMPARISON_IMAGES = False
-
-# Visual annotation styling
-ANNOTATION_COLOR_INTERACTIVE = (0, 255, 0)  # Green for clickable
-ANNOTATION_COLOR_NON_INTERACTIVE = (255, 165, 0)  # Orange for static
-ANNOTATION_FONT_SIZE = 16
-ANNOTATION_BOX_WIDTH = 3
-```
-
-## 🎮 Usage
-
-### Quick Start
 ```bash
-# Run with default settings
-python main.py
+# Core dependencies
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+pip install transformers
+pip install pillow
+pip install pywin32
+pip install numpy
+
+# OmniParser V2 dependencies
+pip install ultralytics
+pip install easyocr
+pip install paddlepaddle paddleocr  # Optional, for better OCR
+```
+
+### Model Setup
+
+1. **Download OmniParser V2 Models**:
+   ```bash
+   # Create weights directory
+   mkdir -p weights/icon_detect
+   mkdir -p weights/icon_caption_florence
+   
+   # Download models (follow OmniParser V2 installation guide)
+   # Place icon detection model at: weights/icon_detect/model.pt
+   # Place caption model at: weights/icon_caption_florence/
+   ```
+
+2. **Verify Installation**:
+   ```bash
+   python launcher.py --verify
+   ```
+
+## 🚀 Quick Start
+
+### Basic Usage
+
+```bash
+# Run verification tests first
+python launcher.py --verify
+
+# Run benchmark on a game (assuming game is already running)
+python launcher.py --no-launch
+
+# Launch and benchmark a specific game
+python launcher.py --game far_cry_6
 
 # Use custom game path
-python main.py --game-path "C:\Games\YourGame\game.exe"
-
-# Test detection without launching game
-python main.py --test-detection
-
-# Test debug annotations (screenshot + visual analysis)
-python main.py --test-annotations
-
-# Show system status
-python main.py --status
+python launcher.py --game-path "C:\Path\To\Your\Game.exe"
 ```
 
-### Programmatic Usage
+### Configuration
+
+Edit `config.py` to customize:
+
+- **Game Paths**: Add your game executable paths
+- **AI Model Settings**: Adjust temperature, confidence thresholds
+- **Benchmark Timing**: Modify timeouts and intervals
+- **Debug Options**: Enable/disable logging and output saving
+
 ```python
-from benchmark_manager import BenchmarkManager
+# Example game path configuration
+GAME_PATHS = {
+    "your_game": r"C:\Path\To\Your\Game.exe",
+    "cyberpunk_2077": r"C:\Games\Cyberpunk 2077\bin\x64\Cyberpunk2077.exe"
+}
 
-# Initialize and run full benchmark
-benchmarker = BenchmarkManager("C:\Path\To\Game.exe")
-success = benchmarker.run_full_benchmark_cycle()
+# Example AI configuration
+QWEN_CONFIG = {
+    "temperature": 0.2,  # Lower = more deterministic
+    "confidence_threshold": 0.80  # Minimum confidence for actions
+}
 ```
 
-### Using Individual Components
+## 📋 Usage Examples
+
+### Example 1: Complete Automated Flow
+```bash
+# Launch Far Cry 6 and run complete benchmark
+python launcher.py --game far_cry_6 --timeout 300
+```
+
+### Example 2: Pre-launched Game
+```bash
+# Game is already running at main menu
+python launcher.py --no-launch
+```
+
+### Example 3: Debug Mode
+```bash
+# Run with verbose logging and debug outputs
+python launcher.py --game cyberpunk_2077 --debug
+```
+
+## 🎮 Supported Games
+
+The system includes configurations for:
+
+- **Far Cry 6**
+- **Cyberpunk 2077** 
+- **Black Myth: Wukong Benchmark Tool**
+- **Counter-Strike 2**
+- **Assassin's Creed Series**
+
+### Adding New Games
+
+1. Add game path to `config.py`:
 ```python
-from detector import VisionDetector
-from analyzer import UIAnalyzer
-from input_controller import InputController
-
-# Take screenshot and analyze
-detector = VisionDetector()
-analyzer = UIAnalyzer()
-
-snapshot = detector.take_snapshot()
-content, labeled = detector.parse_image(snapshot)
-
-# Check for UI elements
-if analyzer.check_for_main_menu(content):
-    print("Main menu detected!")
-
-# Find and interact with elements
-analyzer.find_and_click_element(content, ["play", "start"])
+GAME_PATHS = {
+    "your_game": r"C:\Path\To\Game.exe"
+}
 ```
 
-### Debug Annotations
+2. Test the system:
+```bash
+python launcher.py --game your_game --debug
+```
+
+3. The AI will automatically learn the game's UI patterns!
+
+## 🔧 Configuration Reference
+
+### Key Configuration Files
+
+- **`config.py`**: Main configuration (model settings, game paths, prompts)
+- **`launcher.py`**: Entry point with command-line options
+
+### Important Settings
+
 ```python
-from debug_annotator import DebugAnnotator
-from detector import VisionDetector
+# Benchmark timing
+BENCHMARK_CONFIG = {
+    "benchmark_duration": 70,      # Expected benchmark time
+    "screenshot_interval": 2.0,    # Time between screenshots
+    "max_navigation_attempts": 15, # Max menu navigation tries
+    "confidence_threshold": 0.80   # Min AI confidence for actions
+}
 
-# Take screenshot and create debug annotations
-detector = VisionDetector()
-annotator = DebugAnnotator()
-
-snapshot = detector.take_snapshot()
-content, _ = detector.parse_image(snapshot)
-
-# Create detailed visual annotations
-annotated_path = annotator.annotate_image(snapshot, content)
-
-# Generate detailed text report
-annotator.annotate_elements_list(content)
-
-# Create side-by-side comparison
-annotator.create_comparison_image(snapshot, annotated_path)
+# Debug options
+DEBUG_CONFIG = {
+    "verbose_logging": True,           # Detailed logs
+    "save_omniparser_outputs": True,  # Save UI detection images
+    "save_qwen_responses": True       # Save AI decision logs
+}
 ```
 
-## 📁 Output Structure
+## 📊 Output Structure
 
-The system creates organized output directories:
+After running, the system creates:
 
 ```
-benchmark_logs/
-├── snapsForOmni/          # Raw screenshots
-├── omniParsedImages/      # Processed images with UI element labels
-│   ├── debug_annotated_*.png     # Annotated images with visual debugging
-│   ├── elements_list_*.txt       # Detailed text reports of detected elements
-│   └── comparison_*.png          # Side-by-side original vs annotated (optional)
-├── gameBenchmarkSnaps/    # Benchmark result screenshots
-└── runtimeLog/            # Detailed execution logs
+benchmark_runs/
+└── run_YYYYMMDD_HHMMSS/
+    ├── Raw_Screenshots/           # All captured screenshots
+    ├── OmniParser_Outputs/        # UI detection visualizations
+    ├── Qwen_Responses/           # AI decision logs
+    ├── Logs/                     # System logs and summaries
+    └── Benchmark_Results/        # Final benchmark screenshots
 ```
 
-## 🔧 Component Details
-
-### VisionDetector (`detector.py`)
-- OmniParser model initialization and management
-- Screenshot capture and saving
-- Image parsing and UI element detection
-- Labeled image generation
-
-### InputController (`input_controller.py`)
-- Mouse click operations at specific coordinates
-- Keyboard input simulation
-- Screen coordinate calculations
-- Input timing and delays
-
-### UIAnalyzer (`analyzer.py`)
-- UI element content analysis
-- Element finding and filtering
-- Game-specific UI pattern recognition
-- Interactive element detection
-
-### GameController (`game_controller.py`)
-- Game process launching
-- Menu navigation logic
-- Main menu detection
-- Graceful game exit handling
-
-### DebugAnnotator (`debug_annotator.py`)
-- Comprehensive visual annotation of detected UI elements
-- Color-coded bounding boxes (green=interactive, orange=static)
-- Element numbering and content labels
-- Detection confidence scores and metadata
-- Legend and summary information overlay
-- Text reports with detailed element information
-- Optional side-by-side comparison images
-
-### BenchmarkManager (`benchmark_manager.py`)
-- Overall orchestration
-- Logging setup and management
-- Directory creation
-- Full benchmark cycle execution
-
-## 🎯 Customization for Different Games
-
-To adapt the system for a new game:
-
-1. **Update `config.py`**:
-   ```python
-   DEFAULT_GAME_PATH = r"C:\Path\To\NewGame.exe"
-   
-   # Customize UI element detection terms
-   MAIN_MENU_INDICATORS = [
-       ["start", "play", "begin"],
-       ["settings", "options"],
-       ["exit", "quit"]
-   ]
-   
-   BENCHMARK_TARGETS = ["performance", "fps test", "benchmark"]
-   ```
-
-2. **Adjust timing settings** if needed:
-   ```python
-   BENCHMARK_DURATION = 90  # Longer benchmark
-   MAIN_MENU_WAIT_TIME = 180  # Faster loading game
-   ```
-
-3. **Extend game-specific logic** in `game_controller.py` if needed
-
-## 🛠️ Troubleshooting
+## 🔍 Troubleshooting
 
 ### Common Issues
 
-**Detection not working:**
-- Check if OmniParser models are properly loaded
-- Verify GPU/CUDA availability if using GPU
-- Adjust `BOX_THRESHOLD` in config (lower = more sensitive)
+1. **"CUDA not available"**
+   - Install CUDA-compatible PyTorch
+   - System will work on CPU but much slower
 
-**Game not launching:**
-- Verify game path in config
-- Check if game requires admin privileges
-- Ensure game executable is accessible
+2. **"OmniParser models not found"**
+   - Download OmniParser V2 models to `weights/` directory
+   - Run `python launcher.py --verify` to check
 
-**Menu navigation failing:**
-- Review detection logs to see what elements are found
-- Adjust UI element detection terms in config
-- Check if game UI language matches detection terms
+3. **"Game not responding to clicks"**
+   - Ensure game is in windowed/borderless mode
+   - Check if game requires admin privileges
+   - Verify screen scaling is 100%
 
-**Benchmark not starting:**
-- Verify benchmark option detection terms
-- Check if game requires specific graphics settings
-- Review navigation path to benchmark option
+4. **"Navigation loop detected"**
+   - AI automatically handles this by pressing Escape
+   - May indicate game UI has changed
+   - Check debug logs for UI detection issues
 
 ### Debug Mode
-Enable detailed logging by setting `LOG_LEVEL = "DEBUG"` in config.py
 
-## 📊 Performance Tuning
+Run with `--debug` flag for detailed information:
 
-- **GPU Usage**: Set `DEVICE = "cuda"` for faster processing
-- **Detection Sensitivity**: Adjust `BOX_THRESHOLD` (0.01-0.1 range)
-- **Batch Size**: Modify `BATCH_SIZE` based on GPU memory
-- **Timing**: Adjust delay constants for different game response times
+```bash
+python launcher.py --debug --no-launch
+```
+
+This enables:
+- Verbose logging
+- UI detection image saving
+- AI decision logging
+- Step-by-step execution details
+
+### Verification Tests
+
+```bash
+python launcher.py --verify
+```
+
+Checks:
+- ✅ Dependencies installed
+- ✅ GPU/CUDA available  
+- ✅ Model files present
+- ✅ Configuration valid
+- ✅ File permissions
+
+## 🧠 How It Works
+
+### The Flow
+
+1. **Screenshot Capture**: Takes screenshot of current game state
+2. **UI Detection**: OmniParser V2 identifies all UI elements and their locations
+3. **Decision Making**: Qwen 2.5 analyzes UI elements and decides next action
+4. **Action Execution**: win32api performs mouse clicks or keyboard presses
+5. **Progress Monitoring**: Continuously monitors for benchmark completion
+6. **Result Capture**: Detects and saves benchmark results
+7. **Graceful Exit**: Navigates back to menu and exits game
+
+### AI Decision Process
+
+The system uses sophisticated prompts to guide Qwen 2.5:
+
+```
+GOAL: Navigate to and start the in-game benchmark
+
+UI ELEMENTS DETECTED:
+1. "Graphics Settings" - button (Interactive) [340, 510, 600, 580]
+2. "Benchmark" - button (Interactive) [200, 300, 400, 350]
+3. "Back" - button (Interactive) [50, 50, 150, 100]
+
+DECISION: CLICK on "Benchmark" (confidence: 0.95)
+REASONING: Found direct benchmark button, highest priority target
+```
 
 ## 🤝 Contributing
 
-The modular architecture makes it easy to contribute:
+Contributions are welcome! Areas for improvement:
 
-- Add new games by updating config prompts
-- Extend UI detection capabilities in `analyzer.py`
-- Improve input handling in `input_controller.py`
-- Add new benchmark types in `benchmark_manager.py`
+- **Game Support**: Add configurations for new games
+- **UI Detection**: Improve element detection accuracy
+- **Decision Logic**: Enhance AI decision-making prompts
+- **Error Handling**: Add more robust error recovery
+- **Performance**: Optimize model loading and inference
 
-## 📄 License
+## ⚖️ License
 
-This project builds upon OmniParserV2 and follows appropriate licensing for computer vision and automation tools.
+This project is released under the Apache 2.0 License. See `LICENSE` file for details.
+
+## 🙏 Acknowledgments
+
+- **OmniParser V2**: For excellent UI element detection
+- **Qwen Team**: For the powerful Qwen 2.5 language model
+- **Microsoft**: For win32api Windows integration
+- **Game Developers**: For including built-in benchmark tools
 
 ---
 
-## 💡 Advanced Usage Examples
-
-### Custom Benchmark Workflow
-```python
-from benchmark_manager import BenchmarkManager
-
-# Initialize with custom settings
-benchmarker = BenchmarkManager("C:\Game.exe")
-
-# Run individual steps
-game_ctrl = benchmarker.game_controller
-
-# Launch and wait for menu
-if game_ctrl.launch_game():
-    menu_found, content = game_ctrl.wait_for_main_menu()
-    
-    if menu_found:
-        # Custom navigation logic here
-        if game_ctrl.navigate_to_benchmarks(content):
-            # Run benchmark with custom duration
-            benchmarker.run_benchmark()
-            
-        game_ctrl.exit_game()
-```
-
-### Multiple Game Testing
-```python
-games = [
-    r"C:\Games\Game1\game1.exe",
-    r"C:\Games\Game2\game2.exe",
-    r"C:\Games\Game3\game3.exe"
-]
-
-results = []
-for game_path in games:
-    benchmarker = BenchmarkManager(game_path)
-    success = benchmarker.run_full_benchmark_cycle()
-    results.append((game_path, success))
-```
-
-This modular design provides maximum flexibility while maintaining the robust automation capabilities of the original system.
+**Note**: This tool is for personal use and benchmarking purposes. Ensure you comply with game terms of service and local laws when using automation tools.
