@@ -7,7 +7,8 @@ A modular computer vision-based system for automatically running in-game benchma
 The system is organized into modular components for maintainability and flexibility:
 
 ```
-├── config.py              # Configuration and settings
+├── weights                  # Icon detection and Icon caption goes here from HF
+├── config.py                # Configuration and settings
 ├── detector.py             # Computer vision and image detection
 ├── input_controller.py     # Mouse and keyboard input handling
 ├── analyzer.py             # UI element analysis and detection logic
