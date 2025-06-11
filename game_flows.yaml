@@ -1,0 +1,559 @@
+# Enhanced Game-specific navigation flows with state detection and flow definitions
+# Each game now has its own state keywords and expected flow progression
+
+games:
+  far_cry_5:
+    name: "Far Cry 5"
+    executable_path: "D:/games/Far Cry 5/bin/FarCry5.exe"
+    benchmark_duration: 75
+    benchmark_sleep_time: 80
+    
+    # High-level flow definition - expected state progression
+    flow_states:
+      sequence: ["MAIN_MENU", "OPTIONS_MENU", "GRAPHICS_SETTINGS", "BENCHMARK_RUNNING", "BENCHMARK_RESULTS"]
+      transitions:
+        MAIN_MENU: ["OPTIONS_MENU"]
+        OPTIONS_MENU: ["GRAPHICS_SETTINGS", "MAIN_MENU"]
+        GRAPHICS_SETTINGS: ["BENCHMARK_RUNNING", "OPTIONS_MENU"]
+        BENCHMARK_RUNNING: ["BENCHMARK_RESULTS"]
+        BENCHMARK_RESULTS: ["MAIN_MENU"]
+      goal_state: "BENCHMARK_RESULTS"
+    
+    # Game-specific state detection keywords
+    state_keywords:
+      SPLASH_SCREEN: ["press any key", "click to continue", "loading", "far cry", "ubisoft"]
+      MAIN_MENU: ["continue", "new game", "options", "settings", "exit", "quit", "arcade"]
+      OPTIONS_MENU: ["graphics", "video", "audio", "controls", "gameplay", "interface"]
+      GRAPHICS_SETTINGS: ["benchmark", "display", "quality", "resolution", "vsync", "anti aliasing"]
+      BENCHMARK_MENU: ["start", "run", "begin", "benchmark test"]
+      BENCHMARK_CONFIRM: ["are you sure", "start benchmark", "confirm", "cancel", "yes", "no"]
+      BENCHMARK_RUNNING: ["testing", "running", "benchmark in progress", "please wait"]
+      BENCHMARK_RESULTS: ["results", "score", "fps", "average", "minimum", "maximum", "completed", "benchmark complete"]
+      EXIT_CONFIRM: ["quit game", "exit", "yes", "no", "cancel", "quit to desktop"]
+    
+    # Priority keywords for this specific game
+    priority_keywords:
+      benchmark_triggers: ["benchmark", "performance test", "graphics benchmark"]
+      navigation_helpers: ["options", "settings", "graphics", "video"]
+      confirmation_words: ["yes", "confirm", "ok", "start"]
+    
+    keyword_variations:
+      graphics: ["VIDEO", "DISPLAY", "VISUAL", "GRAPHICS", "GRPHCS", "GRAFX"]
+      video: ["GRAPHICS", "DISPLAY", "VISUAL", "VIDEO", "VID", "GRPHCS"]
+      audio: ["SOUND", "MUSIC", "AUDIO", "SND", "AUD"]
+      options: ["SETTINGS", "CONFIG", "OPTIONS", "OPTS", "STTGS"]
+      settings: ["OPTIONS", "CONFIG", "SETTINGS", "STTGS", "OPTS"]
+      benchmark: ["TEST", "PERFORMANCE", "BENCHMARK", "BNCHMRK", "BNCH", "BENMK", "BENCH", "TST"]
+    
+    flow:
+      - step: 1
+        screen_context: "main_menu"
+        description: "Main menu with game options"
+        expected_buttons: ["CONTINUE", "NEW GAME", "OPTIONS", "QUIT TO DESKTOP"]
+        target_button: "OPTIONS"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["GRAPHICS", "VIDEO", "AUDIO", "CONTROLS", "GAMEPLAY"]
+        
+      - step: 2
+        screen_context: "benchmark_start"
+        description: "Video/Graphics settings with benchmark option"
+        expected_buttons: ["BENCHMARK", "DISPLAY MODE", "RESOLUTION", "QUALITY", "ADVANCED"]
+        target_button: "BENCHMARK"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["START", "RUN", "BEGIN", "PLAY", "BLACK SCREEN", "LOADING"]
+        
+      - step: 3
+        screen_context: "benchmark_running"
+        description: "Sleep while benchmark is running"
+        target_button: "SLEEP"
+        action: "sleep"
+        sleep_duration: 80
+        max_retries: 1
+        success_indicators: ["BENCHMARK COMPLETE", "RESULTS", "FINISHED", "SCORE"]
+
+  far_cry_6:
+    name: "Far Cry 6"
+    executable_path: "D:/games/Far Cry 6/bin/FarCry6.exe"
+    benchmark_duration: 80
+    benchmark_sleep_time: 85
+    
+    flow_states:
+      sequence: ["MAIN_MENU", "OPTIONS_MENU", "BENCHMARK_RUNNING", "BENCHMARK_RESULTS"]
+      transitions:
+        MAIN_MENU: ["OPTIONS_MENU"]
+        OPTIONS_MENU: ["BENCHMARK_RUNNING", "MAIN_MENU"]
+        BENCHMARK_RUNNING: ["BENCHMARK_RESULTS"]
+        BENCHMARK_RESULTS: ["MAIN_MENU"]
+      goal_state: "BENCHMARK_RESULTS"
+    
+    state_keywords:
+      SPLASH_SCREEN: ["press any key", "click to continue", "loading", "far cry 6", "ubisoft"]
+      MAIN_MENU: ["continue", "new game", "options", "settings", "exit", "campaign", "multiplayer"]
+      OPTIONS_MENU: ["graphics", "video", "audio", "controls", "gameplay", "benchmark", "accessibility"]
+      GRAPHICS_SETTINGS: ["benchmark", "display", "quality", "resolution", "ray tracing", "dlss"]
+      BENCHMARK_MENU: ["start", "run", "begin", "benchmark test"]
+      BENCHMARK_CONFIRM: ["are you sure", "start benchmark", "confirm", "cancel", "yes", "no"]
+      BENCHMARK_RUNNING: ["testing", "running", "benchmark in progress", "please wait", "dani rojas"]
+      BENCHMARK_RESULTS: ["results", "score", "fps", "average", "minimum", "maximum", "completed", "benchmark complete"]
+      EXIT_CONFIRM: ["quit game", "exit", "yes", "no", "cancel", "quit to desktop"]
+    
+    priority_keywords:
+      benchmark_triggers: ["benchmark", "performance test", "graphics test"]
+      navigation_helpers: ["options", "settings", "graphics", "video"]
+      confirmation_words: ["yes", "confirm", "ok", "start"]
+    
+    keyword_variations:
+      graphics: ["VIDEO", "DISPLAY", "VISUAL", "GRAPHICS", "GRPHCS", "GRAFX"]
+      video: ["GRAPHICS", "DISPLAY", "VISUAL", "VIDEO", "VID", "GRPHCS"]
+      benchmark: ["TEST", "PERFORMANCE", "BENCHMARK", "BNCHMRK", "BNCH", "BENMK", "BENCH", "TST"]
+    
+    flow:
+      - step: 1
+        screen_context: "main_menu"
+        description: "Main menu screen"
+        expected_buttons: ["CONTINUE", "NEW GAME", "OPTIONS", "EXIT"]
+        target_button: "OPTIONS"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["GRAPHICS", "VIDEO", "AUDIO", "CONTROLS"]
+        
+      - step: 2
+        screen_context: "benchmark_start"
+        description: "Options menu"
+        expected_buttons: ["GRAPHICS", "VIDEO", "AUDIO", "CONTROLS", "GAMEPLAY", "BENCHMARK"]
+        target_button: "BENCHMARK"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["BLACK SCREEN", "LOADING", "SUNSET"]
+        
+      - step: 3
+        screen_context: "benchmark_running"
+        description: "Sleep while benchmark is running"
+        target_button: "SLEEP"
+        action: "sleep"
+        sleep_duration: 85
+        max_retries: 1
+        success_indicators: ["BENCHMARK COMPLETE", "RESULTS", "FINISHED", "SCORE"]
+
+  counter_strike_2:
+    name: "Counter-Strike 2"
+    executable_path: "C:/Program Files (x86)/Steam/steamapps/common/Counter-Strike Global Offensive/cs2.exe"
+    benchmark_duration: 60
+    benchmark_sleep_time: 65
+    
+    flow_states:
+      sequence: ["MAIN_MENU", "PLAY_MENU", "WORKSHOP_MAPS", "BENCHMARK_RUNNING", "BENCHMARK_RESULTS"]
+      transitions:
+        MAIN_MENU: ["PLAY_MENU"]
+        PLAY_MENU: ["WORKSHOP_MAPS", "MAIN_MENU"]
+        WORKSHOP_MAPS: ["BENCHMARK_RUNNING", "PLAY_MENU"]
+        BENCHMARK_RUNNING: ["BENCHMARK_RESULTS"]
+        BENCHMARK_RESULTS: ["MAIN_MENU"]
+      goal_state: "BENCHMARK_RESULTS"
+    
+    state_keywords:
+      SPLASH_SCREEN: ["press any key", "click to continue", "loading", "counter strike", "valve"]
+      MAIN_MENU: ["play", "inventory", "watch", "settings", "premier", "competitive"]
+      PLAY_MENU: ["matchmaking", "workshop maps", "practice", "community server browser"]
+      OPTIONS_MENU: ["game settings", "video settings", "audio settings", "keyboard mouse"]
+      WORKSHOP_MAPS: ["fps benchmark", "aim botz", "workshop", "subscribe", "fps test"]
+      BENCHMARK_MENU: ["go", "start", "run", "play"]
+      BENCHMARK_RUNNING: ["connecting", "loading", "fps test running", "benchmark active"]
+      BENCHMARK_RESULTS: ["results", "fps", "average", "minimum", "maximum", "test complete"]
+      EXIT_CONFIRM: ["disconnect", "quit", "exit", "yes", "no", "cancel"]
+    
+    priority_keywords:
+      benchmark_triggers: ["workshop maps", "fps benchmark", "fps test"]
+      navigation_helpers: ["play", "workshop", "maps"]
+      confirmation_words: ["go", "play", "start"]
+    
+    keyword_variations:
+      play: ["PLAY", "START", "BEGIN", "PLY", "STR", "BGN"]
+      workshop: ["WORKSHOP", "MAPS", "CUSTOM", "WRKSHP", "MPS", "CSTM"]
+      benchmark: ["BENCHMARK", "FPS TEST", "PERFORMANCE", "BNCHMRK", "FPSTST", "PRFRMNC"]
+    
+    flow:
+      - step: 1
+        screen_context: "main_menu"
+        description: "CS2 main menu"
+        expected_buttons: ["PLAY", "INVENTORY", "WATCH", "SETTINGS"]
+        target_button: "PLAY"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["WORKSHOP MAPS", "MATCHMAKING", "PRACTICE"]
+        
+      - step: 2
+        screen_context: "play_menu"
+        description: "Play menu with different game modes"
+        expected_buttons: ["WORKSHOP MAPS", "GO", "PRACTICE", "COMMUNITY"]
+        target_button: "WORKSHOP MAPS"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["OPEN PARTY", "VISIT WORKSHOP"]
+        
+      - step: 3
+        screen_context: "benchmark_start"
+        description: "Benchmark map details"
+        expected_buttons: ["WORKSHOP MAPS", "GO"]
+        target_button: "GO"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["Black Screen", "CONNECTING"]
+        
+      - step: 4
+        screen_context: "benchmark_running"
+        description: "Sleep while benchmark is running"
+        target_button: "SLEEP"
+        action: "sleep"
+        sleep_duration: 65
+        max_retries: 1
+        success_indicators: ["BENCHMARK COMPLETE", "RESULTS", "FINISHED", "SCORE"]
+
+  black_myth_wukong:
+    name: "Black Myth: Wukong Benchmark"
+    executable_path: "C:/Program Files (x86)/Steam/steamapps/common/Black Myth Wukong Benchmark Tool/b1_benchmark.exe"
+    benchmark_duration: 90
+    benchmark_sleep_time: 95
+    
+    flow_states:
+      sequence: ["SPLASH_SCREEN", "MAIN_MENU", "BENCHMARK_CONFIRM", "BENCHMARK_RUNNING", "BENCHMARK_RESULTS", "EXIT_CONFIRM", "SPLASH_SCREEN"]
+      transitions:
+        SPLASH_SCREEN: ["MAIN_MENU"]
+        MAIN_MENU: ["BENCHMARK_CONFIRM", "EXIT_CONFIRM"]
+        BENCHMARK_CONFIRM: ["BENCHMARK_RUNNING", "MAIN_MENU"]
+        BENCHMARK_RUNNING: ["BENCHMARK_RESULTS"]
+        BENCHMARK_RESULTS: ["MAIN_MENU"]
+        EXIT_CONFIRM: ["SPLASH_SCREEN"]
+      goal_state: "BENCHMARK_RESULTS"
+    
+    state_keywords:
+      SPLASH_SCREEN: ["press any button", "click anywhere", "loading", "black myth", "wukong", "game science"]
+      MAIN_MENU: ["benchmark", "purchase now", "settings", "exit", "start test"]
+      OPTIONS_MENU: ["graphics", "video", "audio", "controls", "quality"]
+      GRAPHICS_SETTINGS: ["benchmark", "ray tracing", "quality", "resolution", "dlss", "frame generation"]
+      BENCHMARK_MENU: ["start", "run", "begin", "confirm"]
+      BENCHMARK_CONFIRM: ["are you sure you want to run benchmark", "confirm", "cancel", "yes", "no", "start benchmark"]
+      BENCHMARK_RUNNING: ["loading", "testing", "running", "progress", "benchmark in progress", "please wait"]
+      BENCHMARK_RESULTS: ["results", "score", "fps", "average", "minimum", "maximum", "finished", "benchmark complete", "test complete"]
+      EXIT_CONFIRM: ["quit", "exit", "yes", "no", "cancel", "exit to desktop"]
+    
+    priority_keywords:
+      benchmark_triggers: ["benchmark", "start test", "run benchmark"]
+      navigation_helpers: ["benchmark", "settings"]
+      confirmation_words: ["confirm", "yes", "start"]
+    
+    keyword_variations:
+      benchmark: ["BENCHMARK", "TEST", "PERFORMANCE", "BNCHMRK", "TST", "PRFRMNC"]
+      settings: ["SETTINGS", "CONFIG", "OPTIONS", "STTGS", "CNFG", "OPTS"]
+      start: ["START", "RUN", "BEGIN", "CONFIRM", "STR", "RN", "BGN", "CNFRM"]
+    
+    flow:
+      - step: 1
+        screen_context: "splash_screen"
+        description: "Initial splash screen - click anywhere to continue"
+        expected_buttons: ["CLICK ANYWHERE", "PRESS ANY KEY"]
+        target_button: "ANY"
+        action: "click_anywhere"
+        max_retries: 2
+        success_indicators: ["BENCHMARK", "SETTINGS", "EXIT"]
+        
+      - step: 2
+        screen_context: "main_menu"
+        description: "Benchmark tool main menu"
+        expected_buttons: ["BENCHMARK", "PURCHASE NOW", "SETTINGS", "EXIT"]
+        target_button: "BENCHMARK"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["Are you sure you want to run benchmark", "Confirm"]
+        
+      - step: 3
+        screen_context: "benchmark_confirm"
+        description: "Benchmark confirmation dialog"
+        expected_buttons: ["CONFIRM", "CANCEL"]
+        target_button: "CONFIRM"
+        action: "click"
+        max_retries: 2
+        success_indicators: ["BENCHMARK STARTING", "LOADING", "Black Screen"]
+        
+      - step: 4
+        screen_context: "benchmark_running"
+        description: "Sleep while benchmark is running"
+        target_button: "SLEEP"
+        action: "sleep"
+        sleep_duration: 95
+        max_retries: 1
+        success_indicators: ["BENCHMARK COMPLETE", "RESULTS", "FINISHED", "SCORE"]
+
+  cyberpunk_2077:
+    name: "Cyberpunk 2077"
+    executable_path: "C:/Program Files (x86)/Steam/steamapps/common/Cyberpunk 2077/bin/x64/Cyberpunk2077.exe"
+    benchmark_duration: 70
+    benchmark_sleep_time: 75
+    
+    flow_states:
+      sequence: ["MAIN_MENU", "SETTINGS_MENU", "GRAPHICS_SETTINGS", "BENCHMARK_START", "BENCHMARK_RUNNING", "BENCHMARK_RESULTS"]
+      transitions:
+        MAIN_MENU: ["SETTINGS_MENU"]
+        SETTINGS_MENU: ["GRAPHICS_SETTINGS", "MAIN_MENU"]
+        GRAPHICS_SETTINGS: ["BENCHMARK_START", "SETTINGS_MENU"]
+        BENCHMARK_START: ["BENCHMARK_RUNNING"]
+        BENCHMARK_RUNNING: ["BENCHMARK_RESULTS"]
+        BENCHMARK_RESULTS: ["MAIN_MENU"]
+      goal_state: "BENCHMARK_RESULTS"
+    
+    state_keywords:
+      SPLASH_SCREEN: ["press any key", "click to continue", "loading", "cyberpunk", "cd projekt"]
+      MAIN_MENU: ["continue", "new game", "load game", "settings", "credits", "exit"]
+      SETTINGS_MENU: ["graphics", "gameplay", "sound", "controls", "interface", "mods"]
+      GRAPHICS_SETTINGS: ["benchmark", "basic", "advanced", "ray tracing", "dlss", "quality preset"]
+      BENCHMARK_MENU: ["start", "run benchmark", "begin", "test"]
+      BENCHMARK_START: ["start", "run benchmark", "begin test", "go"]
+      BENCHMARK_RUNNING: ["testing", "running", "benchmark in progress", "please wait", "night city"]
+      BENCHMARK_RESULTS: ["results", "fps", "score", "average", "minimum", "maximum", "completed", "benchmark complete"]
+      EXIT_CONFIRM: ["quit game", "exit", "yes", "no", "cancel", "quit to desktop"]
+    
+    priority_keywords:
+      benchmark_triggers: ["benchmark", "run benchmark", "start test"]
+      navigation_helpers: ["settings", "graphics"]
+      confirmation_words: ["start", "run", "begin"]
+    
+    keyword_variations:
+      graphics: ["GRAPHICS", "VIDEO", "DISPLAY", "VISUAL", "GRPHCS", "VID"]
+      settings: ["SETTINGS", "OPTIONS", "CONFIG", "STTGS", "OPTS", "CNFG"]
+      benchmark: ["BENCHMARK", "TEST", "PERFORMANCE", "BNCHMRK", "TST", "PRFRMNC"]
+    
+    flow:
+      - step: 1
+        screen_context: "main_menu"
+        description: "Main menu screen"
+        expected_buttons: ["CONTINUE", "NEW GAME", "SETTINGS", "EXIT"]
+        target_button: "SETTINGS"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["GRAPHICS", "VIDEO", "AUDIO", "CONTROLS"]
+        
+      - step: 2
+        screen_context: "settings_menu"
+        description: "Settings menu"
+        expected_buttons: ["GRAPHICS", "VIDEO", "AUDIO", "CONTROLS", "GAMEPLAY"]
+        target_button: "GRAPHICS"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["BENCHMARK", "RAY TRACING", "QUALITY"]
+        
+      - step: 3
+        screen_context: "graphics_settings"
+        description: "Graphics settings"
+        expected_buttons: ["BENCHMARK", "RAY TRACING", "QUALITY", "DLSS"]
+        target_button: "BENCHMARK"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["START", "RUN BENCHMARK"]
+        
+      - step: 4
+        screen_context: "benchmark_start"
+        description: "Start the benchmark"
+        expected_buttons: ["START", "RUN BENCHMARK", "BEGIN"]
+        target_button: "START"
+        action: "click"
+        max_retries: 2
+        success_indicators: ["BENCHMARK RUNNING", "TESTING", "LOADING"]
+        
+      - step: 5
+        screen_context: "benchmark_running"
+        description: "Sleep while benchmark is running"
+        target_button: "SLEEP"
+        action: "sleep"
+        sleep_duration: 75
+        max_retries: 1
+        success_indicators: ["BENCHMARK COMPLETE", "RESULTS", "FINISHED", "SCORE"]
+
+  f1_22:
+    name: "F1 22"
+    executable_path: "C:/Program Files (x86)/Steam/steamapps/common/F1 22/F1_22.exe"
+    benchmark_duration: 60
+    benchmark_sleep_time: 65
+    
+    flow_states:
+      sequence: ["MAIN_MENU", "OPTIONS_MENU", "GRAPHICS_SETTINGS", "BENCHMARK_RUNNING", "BENCHMARK_RESULTS"]
+      transitions:
+        MAIN_MENU: ["OPTIONS_MENU"]
+        OPTIONS_MENU: ["GRAPHICS_SETTINGS", "MAIN_MENU"]
+        GRAPHICS_SETTINGS: ["BENCHMARK_RUNNING", "OPTIONS_MENU"]
+        BENCHMARK_RUNNING: ["BENCHMARK_RESULTS"]
+        BENCHMARK_RESULTS: ["MAIN_MENU"]
+      goal_state: "BENCHMARK_RESULTS"
+    
+    state_keywords:
+      SPLASH_SCREEN: ["press any key", "click to continue", "loading", "formula 1", "codemasters", "ea sports"]
+      MAIN_MENU: ["career", "my team", "grand prix", "time trial", "multiplayer", "options", "exit"]
+      OPTIONS_MENU: ["graphics", "audio", "controls", "gameplay", "accessibility"]
+      GRAPHICS_SETTINGS: ["benchmark", "graphics quality", "display mode", "resolution", "v sync"]
+      BENCHMARK_MENU: ["start", "run", "begin", "benchmark test"]
+      BENCHMARK_RUNNING: ["testing", "running", "benchmark in progress", "please wait"]
+      BENCHMARK_RESULTS: ["results", "fps", "average", "minimum", "maximum", "benchmark complete"]
+      EXIT_CONFIRM: ["quit", "exit", "yes", "no", "cancel"]
+    
+    priority_keywords:
+      benchmark_triggers: ["benchmark", "benchmark test", "graphics benchmark"]
+      navigation_helpers: ["options", "graphics"]
+      confirmation_words: ["start", "run", "begin"]
+    
+    keyword_variations:
+      graphics: ["GRAPHICS", "VIDEO", "DISPLAY", "GRPHCS", "VID"]
+      options: ["OPTIONS", "SETTINGS", "CONFIG", "OPTS", "STTGS"]
+      benchmark: ["BENCHMARK", "TEST", "PERFORMANCE", "BNCHMRK", "TST"]
+    
+    flow:
+      - step: 1
+        screen_context: "main_menu"
+        description: "F1 22 main menu"
+        expected_buttons: ["CAREER", "MY TEAM", "GRAND PRIX", "OPTIONS", "EXIT"]
+        target_button: "OPTIONS"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["GRAPHICS", "AUDIO", "CONTROLS"]
+        
+      - step: 2
+        screen_context: "options_menu"
+        description: "Options menu"
+        expected_buttons: ["GRAPHICS", "AUDIO", "CONTROLS", "GAMEPLAY"]
+        target_button: "GRAPHICS"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["BENCHMARK", "QUALITY", "RESOLUTION"]
+        
+      - step: 3
+        screen_context: "graphics_settings"
+        description: "Graphics settings with benchmark"
+        expected_buttons: ["BENCHMARK", "GRAPHICS QUALITY", "DISPLAY MODE"]
+        target_button: "BENCHMARK"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["TESTING", "RUNNING", "PROGRESS"]
+        
+      - step: 4
+        screen_context: "benchmark_running"
+        description: "Sleep while benchmark is running"
+        target_button: "SLEEP"
+        action: "sleep"
+        sleep_duration: 65
+        max_retries: 1
+        success_indicators: ["BENCHMARK COMPLETE", "RESULTS", "FINISHED"]
+
+  horizon_zero_dawn:
+    name: "Horizon Zero Dawn"
+    executable_path: "C:/Program Files (x86)/Steam/steamapps/common/Horizon Zero Dawn/HorizonZeroDawn.exe"
+    benchmark_duration: 80
+    benchmark_sleep_time: 85
+    
+    flow_states:
+      sequence: ["MAIN_MENU", "OPTIONS_MENU", "GRAPHICS_SETTINGS", "BENCHMARK_RUNNING", "BENCHMARK_RESULTS"]
+      transitions:
+        MAIN_MENU: ["OPTIONS_MENU"]
+        OPTIONS_MENU: ["GRAPHICS_SETTINGS", "MAIN_MENU"]
+        GRAPHICS_SETTINGS: ["BENCHMARK_RUNNING", "OPTIONS_MENU"]
+        BENCHMARK_RUNNING: ["BENCHMARK_RESULTS"]
+        BENCHMARK_RESULTS: ["MAIN_MENU"]
+      goal_state: "BENCHMARK_RESULTS"
+    
+    state_keywords:
+      SPLASH_SCREEN: ["press any key", "click to continue", "loading", "horizon", "guerrilla", "playstation"]
+      MAIN_MENU: ["continue", "new game", "load game", "options", "credits", "quit"]
+      OPTIONS_MENU: ["graphics", "audio", "controls", "gameplay", "accessibility"]
+      GRAPHICS_SETTINGS: ["benchmark", "preset", "textures", "model quality", "anti aliasing"]
+      BENCHMARK_MENU: ["start", "run", "begin", "benchmark test"]
+      BENCHMARK_RUNNING: ["testing", "benchmark running", "please wait", "performance test"]
+      BENCHMARK_RESULTS: ["results", "fps", "average", "minimum", "maximum", "benchmark complete", "test results"]
+      EXIT_CONFIRM: ["quit game", "exit", "yes", "no", "cancel"]
+    
+    priority_keywords:
+      benchmark_triggers: ["benchmark", "performance test", "run benchmark"]
+      navigation_helpers: ["options", "graphics"]
+      confirmation_words: ["start", "run", "begin"]
+    
+    keyword_variations:
+      graphics: ["GRAPHICS", "VIDEO", "DISPLAY", "GRPHCS", "VID"]
+      options: ["OPTIONS", "SETTINGS", "CONFIG", "OPTS", "STTGS"]
+      benchmark: ["BENCHMARK", "TEST", "PERFORMANCE", "BNCHMRK", "TST"]
+    
+    flow:
+      - step: 1
+        screen_context: "main_menu"
+        description: "Horizon main menu"
+        expected_buttons: ["CONTINUE", "NEW GAME", "LOAD GAME", "OPTIONS", "QUIT"]
+        target_button: "OPTIONS"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["GRAPHICS", "AUDIO", "CONTROLS"]
+        
+      - step: 2
+        screen_context: "options_menu"
+        description: "Options menu"
+        expected_buttons: ["GRAPHICS", "AUDIO", "CONTROLS", "GAMEPLAY"]
+        target_button: "GRAPHICS"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["BENCHMARK", "PRESET", "TEXTURES"]
+        
+      - step: 3
+        screen_context: "graphics_settings"
+        description: "Graphics settings with benchmark"
+        expected_buttons: ["BENCHMARK", "PRESET", "TEXTURES", "MODEL QUALITY"]
+        target_button: "BENCHMARK"
+        action: "click"
+        max_retries: 3
+        success_indicators: ["TESTING", "RUNNING", "PERFORMANCE"]
+        
+      - step: 4
+        screen_context: "benchmark_running"
+        description: "Sleep while benchmark is running"
+        target_button: "SLEEP"
+        action: "sleep"
+        sleep_duration: 85
+        max_retries: 1
+        success_indicators: ["BENCHMARK COMPLETE", "RESULTS", "FINISHED"]
+
+# Global settings
+settings:
+  screenshot_interval: 3.0
+  max_step_timeout: 30
+  benchmark_duration: 70
+  result_detection_attempts: 8
+  navigation_cooldown: 1.5
+  post_benchmark_wait: 5
+  result_capture_interval: 3
+  main_menu_navigation_attempts: 8
+  graceful_exit_attempts: 5
+  fuzzy_match_threshold: 0.6
+
+# Enhanced result detection patterns
+result_detection:
+  fps_indicators:
+    - "FPS"
+    - "FRAMES PER SECOND"
+    - "AVERAGE"
+    - "MIN"
+    - "MAX"
+    - "1% Low"
+    - "0.1% Low"
+    - "FRAMETIME"
+    - "MINIMUM"
+    - "MAXIMUM"
+    
+  completion_indicators:
+    - "BENCHMARK COMPLETE"
+    - "TEST FINISHED"
+    - "RESULTS"
+    - "SUMMARY"
+    - "SCORE"
+    - "PERFORMANCE"
+    - "FINISHED"
+    - "COMPLETED"
+    - "DONE"
+    - "FINAL SCORE"
+    - "TEST COMPLETE"
+    
+  result_screen_context: "benchmark_results"

@@ -1,173 +1,242 @@
 """
-Configuration file for Game Benchmarker
-Contains all configurable parameters and settings
+Updated configuration settings with enhanced button detection fixes.
 """
-
 import os
-import torch
+from datetime import datetime
+from pathlib import Path
 
-class Config:
-    # === MODEL CONFIGURATION ===
-    MODEL_PATH = "weights/icon_detect/model.pt"
-    CAPTION_MODEL_NAME = "florence2"
-    CAPTION_MODEL_PATH = "weights/icon_caption_florence"
+# Base directory for benchmark runs
+BASE_DIR = Path("benchmark_runs")
+
+# ENHANCED OmniParser V2 Configuration - FIXED for better button detection
+OMNIPARSER_CONFIG = {
+    "icon_detect_model_path": "weights/icon_detect/model.pt",
+    "caption_model_name": "florence2",
+    "caption_model_path": "weights/icon_caption_florence",
+    "device": "cuda",
+    "box_threshold": 0.02,  # LOWERED from 0.05 for better detection
+    "iou_threshold": 0.4,   # LOWERED from 0.5 for better detection
+    "use_local_semantics": True,
+    "batch_size": 128,
+    "scale_img": False,
+    "easyocr_args": {
+        "paragraph": False,
+        "text_threshold": 0.6  # LOWERED from 0.7 for better text detection
+    },
+    "use_paddleocr": True
+}
+
+# Qwen 2.5 7B Instruct Configuration - OPTIMIZED
+QWEN_CONFIG = {
+    "model_name": "Qwen/Qwen2.5-7B-Instruct",
+    "device": "cuda",
+    "torch_dtype": "auto",
+    "device_map": "auto",
+    "temperature": 0.1,
+    "top_p": 0.8,
+    "max_new_tokens": 256,
+    "repetition_penalty": 1.05,
+    "do_sample": True
+}
+
+# Benchmark execution settings - OPTIMIZED
+BENCHMARK_CONFIG = {
+    "initial_wait_time": 3,
+    "screenshot_interval": 2.0,
+    "max_navigation_attempts": 10,
+    "benchmark_timeout": 120,
+    "benchmark_duration": 70,
+    "confidence_threshold": 0.70,
+    "navigation_delay": 1.0,
+    "result_check_attempts": 3,
+    "result_check_interval": 3,
+    "analysis_cooldown": 1.5
+}
+
+# Flow configuration file
+FLOW_CONFIG_FILE = "game_flows.yaml"
+
+# Enhanced decision prompts with button detection awareness
+DECISION_PROMPTS = {
+    "detect_results": """
+Check if benchmark results are shown in these UI elements:
+{ui_elements}
+
+Look for: FPS numbers, AVERAGE, MIN, MAX, RESULTS, COMPLETED, FINISHED
+
+Respond: YES or NO
+""",
+
+    "find_exit": """
+Find exit/quit button from these UI elements:
+{ui_elements}
+
+Look for: EXIT, QUIT, EXIT GAME, QUIT GAME, EXIT TO DESKTOP
+
+Response: CLICK: [element_name] or NONE
+""",
+
+    "confirmation_dialog": """
+This appears to be a confirmation dialog. Look for confirmation buttons:
+{ui_elements}
+
+PRIORITY: Find CONFIRM, YES, OK buttons to proceed.
+AVOID: CANCEL, NO, BACK buttons unless specifically needed.
+
+Response: CLICK: [element_name] or WAIT
+"""
+}
+
+# ENHANCED Debug settings - ALWAYS FORCED ON
+DEBUG_CONFIG = {
+    "enabled": True,
+    "verbose_logging": True,
+    "save_screenshots": True,
+    "save_omniparser_outputs": True,
+    "save_qwen_responses": True,
+    "draw_bounding_boxes": False,
+    "cleanup_old_screenshots": True,
+    "enhanced_button_detection": True,  # NEW: Enable button enhancement
+    "force_qwen_calls": True,  # NEW: Force Qwen call for every analysis
+    "save_enhancement_logs": True  # NEW: Save button enhancement details
+}
+
+# Input control settings - OPTIMIZED
+INPUT_CONFIG = {
+    "smooth_mouse_movement": False,
+    "mouse_movement_steps": 5,
+    "click_delay": 0.1,
+    "key_press_delay": 0.05,
+    "post_action_delay": 1.0
+}
+
+# Enhanced button detection settings
+BUTTON_DETECTION_CONFIG = {
+    "button_keywords": [
+        "confirm", "cancel", "yes", "no", "ok", "apply", "save", "close",
+        "start", "stop", "pause", "resume", "exit", "quit", "back", "next",
+        "continue", "finish", "done", "submit", "send", "go", "run", "begin"
+    ],
+    "confirmation_keywords": ["confirm", "yes", "ok"],
+    "cancellation_keywords": ["cancel", "no", "back"],
+    "max_button_text_length": 20,  # Text longer than this is unlikely to be a button
+    "force_interactive_for_keywords": True,
+    "position_based_detection": True  # Use position to identify buttons
+}
+
+# Keyboard shortcuts
+KEYBOARD_SHORTCUTS = {
+    "exit_game": "alt+f4",
+    "escape_menu": "escape",
+    "screenshot": "f12",
+    "enter": "enter"
+}
+
+def enhance_ui_elements_interactivity(ui_elements):
+    """
+    Post-process UI elements to fix misclassified buttons.
+    This is the CRITICAL fix for the button detection issue.
+    """
+    button_keywords = BUTTON_DETECTION_CONFIG["button_keywords"]
+    max_length = BUTTON_DETECTION_CONFIG["max_button_text_length"]
     
-    # Device configuration - auto-detect or force specific device
-    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    # DEVICE = "cpu"  # Uncomment to force CPU usage
+    enhanced_elements = []
+    enhancement_count = 0
     
-    # === OMNIPARSER CONFIGURATION ===
-    # Box detection threshold (lower = more sensitive)
-    BOX_THRESHOLD = 0.05
+    for element in ui_elements:
+        enhanced_element = element.copy()
+        content = element.get("content", "").lower().strip()
+        
+        # Force buttons to be interactive based on content
+        if not enhanced_element.get("interactivity", False):  # Only enhance non-interactive elements
+            for keyword in button_keywords:
+                if keyword in content and len(content) <= max_length:
+                    enhanced_element["interactivity"] = True
+                    enhanced_element["element_type"] = "button"
+                    enhanced_element["enhancement_reason"] = f"Forced interactive due to keyword: {keyword}"
+                    enhancement_count += 1
+                    break
+            
+            # Special handling for exact matches of confirmation/cancellation
+            if content in BUTTON_DETECTION_CONFIG["confirmation_keywords"] + BUTTON_DETECTION_CONFIG["cancellation_keywords"]:
+                enhanced_element["interactivity"] = True
+                enhanced_element["element_type"] = "button"
+                enhanced_element["enhancement_reason"] = "Exact match for dialog button"
+                enhancement_count += 1
+        
+        enhanced_elements.append(enhanced_element)
     
-    # OCR configuration
-    OCR_TEXT_THRESHOLD = 0.9
-    OCR_USE_PADDLE = True
-    OCR_PARAGRAPH_MODE = False
+    # Log enhancements if debug enabled
+    if DEBUG_CONFIG.get("save_enhancement_logs", True) and enhancement_count > 0:
+        import logging
+        logger = logging.getLogger("ButtonEnhancement")
+        logger.info(f"Enhanced {enhancement_count} elements to fix button detection")
+        
+        for orig, enh in zip(ui_elements, enhanced_elements):
+            if orig.get("interactivity") != enh.get("interactivity"):
+                logger.info(f"Enhanced: '{enh.get('content')}' -> Interactive: {enh.get('interactivity')} ({enh.get('enhancement_reason', 'N/A')})")
     
-    # Image processing settings
-    USE_LOCAL_SEMANTICS = True
-    IOU_THRESHOLD = 0.7
-    SCALE_IMG = False
-    BATCH_SIZE = 128
+    return enhanced_elements
+
+def create_run_directory(game_name: str = "unknown_game"):
+    """Create a game-specific timestamped run directory structure and return paths."""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_dir = BASE_DIR / f"{game_name}_{timestamp}"
     
-    # Bounding box drawing configuration
-    BBOX_TEXT_SCALE_FACTOR = 0.8
-    BBOX_TEXT_THICKNESS_MIN = 1
-    BBOX_TEXT_PADDING_MIN = 1
-    BBOX_THICKNESS_MIN = 1
-    BOX_OVERLAY_RATIO_DIVISOR = 3200
+    # Create subdirectories
+    directories = {
+        "root": run_dir,
+        "raw_screenshots": run_dir / "Raw_Screenshots",
+        "analyzed_screenshots": run_dir / "Analyzed_Screenshots",
+        "logs": run_dir / "Logs",
+        "runtime_logs": run_dir / "Logs" / "runtime_logs",
+        "omniparser_output": run_dir / "Logs" / "omniparser_output",
+        "qwen_prompt": run_dir / "Logs" / "qwen_prompt",
+        "qwen_responses": run_dir / "Logs" / "qwen_responses",
+        "error_logs": run_dir / "Logs" / "error_logs",
+        "benchmark_results": run_dir / "Benchmark_Results",
+        "enhancement_logs": run_dir / "Logs" / "enhancement_logs"  # NEW: For button enhancement logs
+    }
     
-    # === TIMING CONFIGURATION ===
-    # Benchmark duration in seconds (1 min 30 seconds default)
-    BENCHMARK_TIMEOUT = 90
+    # Create all directories
+    for dir_path in directories.values():
+        os.makedirs(dir_path, exist_ok=True)
     
-    # How often to take snapshots during operations (seconds)
-    SNAPSHOT_INTERVAL = 25
+    return directories
+
+def get_game_path(game_name):
+    """Get the executable path for a specific game from YAML config."""
+    try:
+        import yaml
+        with open(FLOW_CONFIG_FILE, 'r') as f:
+            config = yaml.safe_load(f)
+        
+        games = config.get('games', {})
+        if game_name in games:
+            return games[game_name].get('executable_path')
+        return None
+    except Exception:
+        return None
+
+def update_config(config_dict, updates):
+    """Update configuration with new values."""
+    config_dict.update(updates)
+    return config_dict
+
+def log_configuration_status():
+    """Log the current configuration status for debugging."""
+    import logging
+    logger = logging.getLogger("ConfigStatus")
     
-    # Maximum time to wait for main menu (seconds)
-    MAIN_MENU_WAIT_TIME = 300
-    
-    # Benchmark running duration (seconds)
-    BENCHMARK_DURATION = 70
-    
-    # Delays for UI interactions
-    CLICK_DELAY = 0.5
-    MOUSE_DOWN_UP_DELAY = 0.2
-    KEY_PRESS_DELAY = 0.1
-    MENU_TRANSITION_DELAY = 3
-    SHORT_WAIT = 2
-    CONFIRMATION_WAIT = 5
-    
-    # === GAME CONFIGURATION ===
-    # Default game path - modify this for your specific game
-    DEFAULT_GAME_PATH = r"C:\Program Files (x86)\Ubisoft\Ubisoft Game Launcher\games\Far Cry 5\bin\FarCry5.exe"
-    
-    # Maximum attempts for various operations
-    MAX_MENU_NAVIGATION_ATTEMPTS = 10
-    MAX_BENCHMARK_OPTIONS_ATTEMPTS = 5
-    MAX_BENCHMARK_RESULT_CHECKS = 3
-    
-    # === DIRECTORY CONFIGURATION ===
-    BASE_LOG_DIR = "benchmark_logs"
-    SNAPSHOT_DIR = os.path.join(BASE_LOG_DIR, "snapsForOmni")
-    PARSED_IMAGES_DIR = os.path.join(BASE_LOG_DIR, "omniParsedImages")
-    RUNTIME_LOG_DIR = os.path.join(BASE_LOG_DIR, "runtimeLog")
-    BENCHMARK_RESULTS_DIR = os.path.join(BASE_LOG_DIR, "gameBenchmarkSnaps")
-    
-    # === LOGGING CONFIGURATION ===
-    LOG_LEVEL = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-    LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    LOGGER_NAME = "GameBenchmarker"
-    
-    # === UI ELEMENT DETECTION PROMPTS ===
-    # Main menu indicators - multiple lists that should all be present
-    MAIN_MENU_INDICATORS = [
-        ["start new game", "new game", "play", "campaign", "continue"],
-        ["options", "settings", "configuration"],
-        ["exit", "quit", "exit game", "quit game"],
-    ]
-    
-    # Options/Settings menu targets
-    OPTIONS_TARGETS = ["options", "settings", "configuration"]
-    OPTIONS_FALLBACKS = ["menu", "system"]
-    
-    # Benchmark-related targets
-    BENCHMARK_TARGETS = ["benchmark", "benchmarks", "performance test"]
-    BENCHMARK_FALLBACKS = ["test", "performance", "fps test"]
-    
-    # Graphics menu targets
-    GRAPHICS_TARGETS = ["graphics", "display", "video"]
-    GRAPHICS_FALLBACKS = ["advanced", "quality"]
-    
-    # FPS and benchmark result indicators
-    FPS_INDICATORS = [
-        "fps", "average", "min", "max", "1% low", "0.1% low", 
-        "frame rate", "framerate", "frame/s"
-    ]
-    
-    # Navigation elements
-    BACK_BUTTONS = ["back", "return", "previous", "cancel", "main menu"]
-    CONTINUE_BUTTONS = ["ok", "continue", "back", "return", "done", "main menu"]
-    CONTINUE_FALLBACKS = ["next", "finish", "exit"]
-    
-    # Exit game options
-    EXIT_OPTIONS = [
-        "exit game", "quit game", "exit to desktop", 
-        "quit to desktop", "exit", "quit"
-    ]
-    
-    # Confirmation dialog options
-    CONFIRM_OPTIONS = ["yes", "confirm", "ok", "accept", "exit"]
-    
-    @classmethod
-    def get_directories(cls):
-        """Return all required directories as a list."""
-        return [
-            cls.SNAPSHOT_DIR,
-            cls.PARSED_IMAGES_DIR,
-            cls.RUNTIME_LOG_DIR,
-            cls.BENCHMARK_RESULTS_DIR,
-        ]
-    
-    # === DEBUG ANNOTATION CONFIGURATION ===
-    # Font settings for annotations
-    ANNOTATION_FONT_SIZE = 16
-    ANNOTATION_FONT_SIZE_SMALL = 12
-    
-    # Colors for different element types (RGB tuples)
-    ANNOTATION_COLOR_INTERACTIVE = (0, 255, 0)  # Bright green for interactive
-    ANNOTATION_COLOR_NON_INTERACTIVE = (255, 165, 0)  # Orange for non-interactive
-    ANNOTATION_COLOR_INTERACTIVE_BG = (0, 100, 0, 180)  # Semi-transparent green
-    ANNOTATION_COLOR_NON_INTERACTIVE_BG = (100, 60, 0, 180)  # Semi-transparent orange
-    ANNOTATION_COLOR_TEXT = (255, 255, 255)  # White text
-    
-    # Bounding box appearance
-    ANNOTATION_BOX_WIDTH = 3
-    ANNOTATION_MAX_TEXT_LENGTH = 30
-    ANNOTATION_TEXT_PADDING = 4
-    
-    # Legend settings
-    ANNOTATION_LEGEND_WIDTH = 200
-    ANNOTATION_LEGEND_MARGIN = 10
-    ANNOTATION_LEGEND_LINE_HEIGHT = 20
-    ANNOTATION_LEGEND_BG = (0, 0, 0, 200)  # Semi-transparent black
-    ANNOTATION_LEGEND_BORDER = (255, 255, 255)  # White border
-    
-    # Comparison image settings
-    ANNOTATION_COMPARISON_GAP = 20  # Gap between original and annotated in side-by-side
-    
-    # Enable/disable debug annotations
-    ENABLE_DEBUG_ANNOTATIONS = True
-    SAVE_ELEMENTS_LIST = True  # Also save text file with element details
-    CREATE_COMPARISON_IMAGES = False  # Set to True for side-by-side comparisons
-    
-    @classmethod
-    def get_bbox_draw_config(cls, box_overlay_ratio):
-        """Generate bounding box drawing configuration based on image size."""
-        return {
-            "text_scale": cls.BBOX_TEXT_SCALE_FACTOR * box_overlay_ratio,
-            "text_thickness": max(int(2 * box_overlay_ratio), cls.BBOX_TEXT_THICKNESS_MIN),
-            "text_padding": max(int(3 * box_overlay_ratio), cls.BBOX_TEXT_PADDING_MIN),
-            "thickness": max(int(3 * box_overlay_ratio), cls.BBOX_THICKNESS_MIN),
-        }
+    logger.info("=== ENHANCED CONFIGURATION STATUS ===")
+    logger.info(f"OmniParser box_threshold: {OMNIPARSER_CONFIG['box_threshold']} (LOWERED)")
+    logger.info(f"OmniParser iou_threshold: {OMNIPARSER_CONFIG['iou_threshold']} (LOWERED)")
+    logger.info(f"OmniParser text_threshold: {OMNIPARSER_CONFIG['easyocr_args']['text_threshold']} (LOWERED)")
+    logger.info(f"Button detection enabled: {DEBUG_CONFIG['enhanced_button_detection']}")
+    logger.info(f"Force Qwen calls: {DEBUG_CONFIG['force_qwen_calls']}")
+    logger.info(f"Button keywords: {len(BUTTON_DETECTION_CONFIG['button_keywords'])} configured")
+    logger.info("=== CONFIGURATION LOADED ===")
+
+# Initialize configuration logging
+if __name__ == "__main__":
+    log_configuration_status()
